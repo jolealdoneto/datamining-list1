@@ -1,4 +1,3 @@
-
 seq_db = [ "ACGTCACG", "TCGA", "GACTGCA", "CAGTC", "AGCT", "TGCAGCTC", "AGTCAG" ]
 alf = [ "A", "C", "G", "T" ]
 
@@ -20,10 +19,21 @@ def get_frequent(item, last, minsup):
         if sup(gen_item) >= minsup:
             freq_items.append(gen_item)
     return freq_items + reduce(lambda acc, a: acc + a, map(lambda i: get_frequent(i, freq_items, 4), freq_items), [])
+def get_all_permutations(seq, start):
+    return map(lambda s: seq[start:s], range(start+1, len(seq)+1))
+def sup_substr(sub):
+    return sum(map(lambda s: 1 if s.find(sub) > -1 else 0, seq_db))
+
+
+
 
 # A
 all_frequent = get_frequent("", ["A", "C", "G", "T"], 4)
-print "frequent: ", all_frequent
+max_freq = []
+for seq, i in zip(all_frequent, range(len(all_frequent))):
+    if len(filter(lambda x: is_present(seq, x), all_frequent[i+1:])) == 0:
+        max_freq.append(seq)
+print "Max: ", max_freq
 # B
 closed_freq = []
 for seq, i in zip(sorted(all_frequent, lambda a, b: len(a) - len(b)), range(len(all_frequent))):
@@ -36,10 +46,20 @@ for seq, i in zip(sorted(all_frequent, lambda a, b: len(a) - len(b)), range(len(
         closed_freq.append(seq)
 print "closed: ", closed_freq
 #C
-max_freq = []
-for seq, i in zip(all_frequent, range(len(all_frequent))):
-    if len(filter(lambda x: is_present(seq, x), all_frequent[i+1:])) == 0:
-        max_freq.append(seq)
-print "Max: ", max_freq
+substr = {}
+for seq in seq_db:
+    for i in range(len(seq)):
+        for perm in get_all_permutations(seq, i):
+            if sup_substr(perm) >= 4:
+                if perm not in substr:
+                    substr[perm] = 1
+                else:
+                    substr[perm] += 1
+max_subs = substr.keys()
+print "frequent:"
+for s, i in zip(max_subs, range(len(max_subs))):
+    if len(filter(lambda j: j.find(s) > -1, max_subs[i+1:])) == 0:
+        print s, substr[s]
+
 
 
